@@ -36,11 +36,11 @@ NOTE: It is recommended to enable synchronization only when in dev mode and when
 
 `vendure-config.ts`
 ```ts
-	dbConnectionOptions: {
-		// other settings...
-		synchronize: true,
-		// other settings...
-	},
+dbConnectionOptions: {
+	// other settings...
+	synchronize: true,
+	// other settings...
+},
 ```
 
 Before using in production, you will want to create your own [database migration](https://docs.vendure.io/guides/developer-guide/migrations/).
@@ -56,10 +56,10 @@ import { BlogPlugin } from '@ovidlabs/blog'
 
 `vendure-config.ts`
 ```ts
-	plugins: [
-		// other plugins...
-		blogPlugin
-	]
+plugins: [
+	// other plugins...
+	blogPlugin
+]
 ```
 
 ### Add the UI extensions for the Plugin to your Admin UI Plugin
@@ -68,17 +68,17 @@ As an example, your AdminUiPlugin configuration might look something like this. 
 
 `vendure-config.ts`
 ```ts
-	AdminUiPlugin.init({
-		route: 'admin',
-		port: 3002,
-		app: compileUiExtensions({
-			outputPath: path.join(__dirname, '../admin-ui'),
-			extensions: [
-				 BlogPlugin.uiExtensions,
-			],
-			devMode: true,
-		}),
+AdminUiPlugin.init({
+	route: 'admin',
+	port: 3002,
+	app: compileUiExtensions({
+		outputPath: path.join(__dirname, '../admin-ui'),
+		extensions: [
+				BlogPlugin.uiExtensions,
+		],
+		devMode: true,
 	}),
+}),
 ```
 
 ## Adding Custom Fields
