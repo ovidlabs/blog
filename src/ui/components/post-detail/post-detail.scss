@@ -1,0 +1,22 @@
+
+::ng-deep .clr-form-control {
+	flex: 1;
+
+	.clr-control-container {
+		width: 100%;
+	}
+	textarea {
+		width: 100%;
+		height: 250px;
+	}
+}
+
+::ng-deep .ng2-tag-input {
+	border-bottom: 0px !important;
+}
+
+.post-info {
+	display: flex;
+	align-items: center;
+}
+

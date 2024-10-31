@@ -1,0 +1,29 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"target": "es2021",
+		"lib": ["es2021"],
+		"skipLibCheck": true,
+		"types": ["node"],
+		"allowSyntheticDefaultImports": true,
+		"esModuleInterop": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"strict": true,
+		"strictPropertyInitialization": false,
+		"sourceMap": false,
+		"removeComments": true,
+		"outDir": "./dist",
+		"baseUrl": "./",
+		"rootDir": "src",
+	},
+	"include": ["src/"],
+	"exclude": ["src/ui"],
+	"angularCompilerOptions": {
+		"enableI18nLegacyMessageIdFormat": false,
+		"strictInjectionParameters": true,
+		"strictTemplates": true,
+		"preserveWhitespaces": true,
+		"disableTypeScriptVersionCheck": true
+	}
+ }

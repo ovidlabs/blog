@@ -1,0 +1,155 @@
+<vdr-page-block>
+	<vdr-action-bar>
+		<vdr-ab-left *ngIf="!(isNew$ | async)" >
+			<post-status-label class="post-info" [status]="status$ | async"></post-status-label>
+		</vdr-ab-left>
+		<vdr-ab-right>
+			<ng-container *ngIf="(status$ | async) === 'draft' || (status$ | async) === 'archived'">
+				<button *vdrIfPermissions="'UpdateCatalog'" class="button success mr-2" (click)="publish()" [disabled]="detailForm.invalid">
+					<clr-icon shape="airplane"></clr-icon>Publish
+				</button>
+			</ng-container>
+			<ng-container *ngIf="(status$ | async) === 'published' || (status$ | async) === 'draft'">
+				<button *vdrIfPermissions="'UpdateCatalog'" class="button warning mr-2" (click)="archive()" [disabled]="detailForm.invalid">
+					<clr-icon shape="archive"></clr-icon>Archive
+				</button>
+			</ng-container>
+			<button class="button primary" *ngIf="isNew$ | async; else updateButton" (click)="create()" [disabled]="detailForm.pristine || detailForm.invalid">{{ 'common.create' | translate }}</button>
+			<ng-template #updateButton>
+				<button class="btn btn-primary" (click)="update()" [disabled]="detailForm.pristine || detailForm.invalid">{{ 'common.update' | translate }}</button>
+			</ng-template>
+		</vdr-ab-right>
+	</vdr-action-bar>
+</vdr-page-block>
+
+<form class="form" [formGroup]="detailForm">
+	<vdr-page-detail-layout>
+		<!-- The sidebar is used for displaying "metadata" type information about the entity -->
+		<vdr-page-detail-sidebar>
+			<vdr-card *ngIf="entity$ | async as entity">
+				<vdr-page-entity-info [entity]="entity" />
+			</vdr-card>
+		</vdr-page-detail-sidebar>
+		<!-- The main content area is used for displaying the entity's fields -->
+		<vdr-page-block>
+			<!-- The vdr-card is the container for grouping items together on a page -->
+			<!-- it can also take an optional [title] property to display a title -->
+			<vdr-card>
+				<!-- the form-grid class is used to lay out the form fields -->
+				<div class="form-grid">
+					<vdr-form-field class="form-grid-span" label="Title" for="title">
+						<input id="title" type="text" formControlName="title" (input)="updateSlug($event.target.value)" />
+					</vdr-form-field>
+					<vdr-form-field label="Slug" for="slug">
+						<input id="slug" type="text" formControlName="slug" />
+					</vdr-form-field>
+					<vdr-form-field label="Content Type" for="contentType">
+						<select id="contentType" formControlName="contentType">
+							<option value="html">HTML</option>
+							<option value="markdown">Markdown</option>
+						</select>
+					</vdr-form-field>
+					<vdr-form-field label="Category" for="categoryId">
+						<select id="categoryId" formControlName="categoryId">
+							<option value=""></option>
+							<option *ngFor="let category of categories$ | async" [value]="category.id" [readonly]="!('UpdateCatalog' | hasPermission)">{{ category.name }}</option>
+						</select>
+					</vdr-form-field>
+					<vdr-form-field label="Author" for="authorId">
+						<select id="authorId" formControlName="authorId">
+							<option *ngFor="let author of authors$ | async" [value]="author.id" [readonly]="!('UpdateCatalog' | hasPermission)">{{ author.name }}</option>
+						</select>
+					</vdr-form-field>
+				</div>
+			</vdr-card>
+			<vdr-card title="Content">
+				<div *ngIf="entity$ | async as entity">
+					<div class="property">
+						<div class="prop-label">Word count: {{ wordCount }}</div>
+					</div>
+					<div class="property">
+						<div class="prop-label">Estimated Read Time: {{ minutesToRead }} minute{{ (minutesToRead > 1)? 's' : ''  }}</div>
+					</div>
+				</div>
+				<button *vdrIfPermissions="'UpdateCatalog'" class="button mt-2" (click)="openEditor()">
+					<clr-icon shape="pencil"></clr-icon>Edit Content
+				</button>		
+			</vdr-card>
+			<vdr-card title="Tags">
+				<vdr-form-field class="form-grid-span" for="tags">
+					<ng-select 
+						formControlName="tags" 
+						[items]="tags$ | async" 
+						[multiple]="true" 
+						[hideSelected]="true"
+						[closeOnSelect]="false" 
+						[searchable]="true" 
+						[clearable]="true" >
+						<ng-template ng-label-tmp let-item="item">
+							<vdr-chip>{{ item.value }}</vdr-chip>
+						</ng-template>
+						<ng-template ng-option-tmp let-item="item">
+							{{ item.value }}
+						</ng-template>
+					</ng-select>
+			  </vdr-form-field>
+			</vdr-card>
+			<vdr-card formGroupName="customFields" *ngIf="customFields.length" [title]="'common.custom-fields' | translate">
+				<vdr-tabbed-custom-fields entityName="ProductReview" [customFields]="customFields" [customFieldsFormGroup]="detailForm.get('customFields')"></vdr-tabbed-custom-fields>
+			</vdr-card>
+			<vdr-card title="SEO Metadata">
+				<div class="form-grid">
+					<vdr-form-field class="form-grid-span" [label]="'common.description' | translate" for="description">
+						 <textarea id="description" formControlName="description"></textarea>
+			  		</vdr-form-field>
+					<vdr-form-field class="form-grid-span" label="Keywords" for="keywords">
+						 <tag-input 
+						 	formControlName="keywordsArray" 
+							[separatorKeyCodes]="[188, 13]" 
+							[modelAsStrings]="true"
+							secondaryPlaceholder="Enter keywords for SEO" 
+							placeholder="+ Keyword">
+						</tag-input>
+					</vdr-form-field>
+					<vdr-form-field class="form-grid-span" label="Excerpt (for open graph)" for="excerpt">
+						 <textarea id="excerpt" formControlName="excerpt"></textarea>
+			  		</vdr-form-field>
+				</div>
+			</vdr-card>
+			<vdr-card title="Related Products">
+				<!-- <div *ngIf="entity$ | async as entity">
+					<a *ngFor="let product of entity?.products" class="button-ghost mr-1" [routerLink]="['/catalog/products', product.id]">
+						{{ product.name }}<clr-icon shape="arrow right"></clr-icon>
+					</a>
+				</div>
+				<button *vdrIfPermissions="'UpdateCatalog'" class="button mt-2" (click)="editRelatedPosts()">
+					<clr-icon shape="pencil"></clr-icon>Edit Selection
+				</button>	 -->
+				<ng-select 
+					formControlName="products"
+					[items]="products$ | async"
+					[multiple]="true" 
+					[hideSelected]="true"
+					[closeOnSelect]="false" 
+					[searchable]="true" 
+					[clearable]="true" >
+					<ng-template ng-label-tmp let-item="item">
+						<vdr-chip>{{ item.name }}</vdr-chip>
+					</ng-template>
+					<ng-template ng-option-tmp let-item="item">
+						{{ item.name }}
+					</ng-template>
+				</ng-select>
+			</vdr-card>
+			<vdr-card *ngIf="!(isNew$ | async)" title="Post History">
+				<post-history
+					[post]="entity$ | async"
+					[history]="history$ | async"
+					(addNote)="addNote($event)"
+					(updateNote)="updateNote($event)"
+					(deleteNote)="deleteNote($event)"
+				></post-history>
+			</vdr-card>
+		</vdr-page-block>
+	</vdr-page-detail-layout>
+</form>

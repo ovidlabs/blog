@@ -1,0 +1,57 @@
+<vdr-page-block>
+	<vdr-action-bar>
+		<vdr-ab-left></vdr-ab-left>
+		<vdr-ab-right>
+			<a class="btn btn-primary" *vdrIfPermissions="['CreateOrder']" [routerLink]="['./', 'create']">
+				<clr-icon shape="plus"></clr-icon>
+				Create new author
+			</a>
+		</vdr-ab-right>
+	</vdr-action-bar>
+</vdr-page-block>
+
+<vdr-data-table-2
+	id="author-list"
+	[items]="items$ | async"
+	[itemsPerPage]="itemsPerPage$ | async"
+	[totalItems]="totalItems$ | async"
+	[currentPage]="currentPage$ | async"
+	[filters]="filters"
+	(pageChange)="setPageNumber($event)"
+	(itemsPerPageChange)="setItemsPerPage($event)"
+>
+	<!-- optional if you want to support bulk actions -->
+	<vdr-bulk-action-menu locationId="author-list" [hostComponent]="this" [selectionManager]="selectionManager" />
+
+	<!-- Adds a search bar -->
+	<vdr-dt2-search [searchTermControl]="searchTermControl" searchTermPlaceholder="Search author names" />
+
+	<!-- Here we define all the available columns -->
+	<vdr-dt2-column [heading]="'common.id' | translate" [hiddenByDefault]="true">
+		<ng-template let-author="item">{{ author.id }}</ng-template>
+	</vdr-dt2-column>
+	<vdr-dt2-column [heading]="'common.created-at' | translate" [hiddenByDefault]="true" [sort]="sorts.get('createdAt')">
+		<ng-template let-author="item">
+			{{ author.createdAt | localeDate : 'short' }}
+		</ng-template>
+	</vdr-dt2-column>
+	<vdr-dt2-column [heading]="'common.updated-at' | translate" [hiddenByDefault]="true" [sort]="sorts.get('updatedAt')">
+		<ng-template let-author="item">
+			{{ author.updatedAt | localeDate : 'short' }}
+		</ng-template>
+	</vdr-dt2-column>
+	<vdr-dt2-column heading="Name" [sort]="sorts.get('name')">
+		<ng-template let-author="item">
+			<a class="button-ghost" [routerLink]="['./', author.id]">
+				<span>{{ author.name }}</span>
+				<clr-icon shape="arrow right"></clr-icon>
+			</a>
+		</ng-template>
+	</vdr-dt2-column>
+	<vdr-dt2-column heading="Bio" [sort]="sorts.get('bio')">
+		<ng-template let-author="item">
+			{{ author.bio }}
+		</ng-template>
+	</vdr-dt2-column>
+	<vdr-dt2-custom-field-column *ngFor="let customField of customFields" [customField]="customField" [sorts]="sorts" />
+</vdr-data-table-2>

@@ -1,0 +1,86 @@
+<div class="entry-list">
+	<vdr-timeline-entry iconShape="note" displayType="muted" *vdrIfPermissions="'UpdateCustomer'">
+		<div class="note-entry">
+			<textarea [(ngModel)]="note" name="note" class="note"></textarea>
+			<button class="btn btn-secondary" [disabled]="!note" (click)="addNoteToBlogPost()">
+				{{ 'order.add-note' | translate }}
+			</button>
+		</div>
+	</vdr-timeline-entry>
+	<ng-container *ngFor="let entry of history">
+		<vdr-timeline-entry
+			[displayType]="getDisplayType(entry)"
+			[iconShape]="getTimelineIcon(entry)"
+			[createdAt]="entry.createdAt"
+			[name]="getName(entry)"
+			[featured]="isFeatured(entry)"
+			[collapsed]="!expanded && !isFeatured(entry)"
+			(expandClick)="expanded = !expanded"
+		>
+			<ng-container [ngSwitch]="entry.type">
+				<ng-container *ngSwitchCase="type.BLOG_POST_CREATED">
+					<div>
+						Post created
+						<vdr-history-entry-detail *ngIf="entry.data.input">
+							<vdr-object-tree [value]="entry.data.input"></vdr-object-tree>
+						</vdr-history-entry-detail>
+					</div>
+				</ng-container>
+				<ng-container *ngSwitchCase="type.BLOG_POST_PUBLISHED">
+					<div>
+						Post published
+					</div>
+				</ng-container>
+				<ng-container *ngSwitchCase="type.BLOG_POST_ARCHIVED">
+					<div>
+						Post archived
+					</div>
+				</ng-container>
+				<ng-container *ngSwitchCase="type.BLOG_POST_UPDATED">
+					<div>
+						Post updated
+						<vdr-history-entry-detail *ngIf="entry.data.input">
+							<vdr-object-tree [value]="entry.data.input"></vdr-object-tree>
+						</vdr-history-entry-detail>
+					</div>
+				</ng-container>
+				<ng-container *ngSwitchCase="type.BLOG_POST_NOTE">
+					<div class="flex">
+						<div class="note-text">{{ entry.data.note }}</div>
+						<div class="flex-spacer"></div>
+						<vdr-dropdown>
+							<button class="icon-button" vdrDropdownTrigger>
+								<clr-icon shape="ellipsis-vertical"></clr-icon>
+							</button>
+							<vdr-dropdown-menu vdrPosition="bottom-right">
+								<button vdrDropdownItem (click)="updateNote.emit(entry)" [disabled]="!('UpdateCustomer' | hasPermission)">
+									<clr-icon shape="edit"></clr-icon> {{ 'common.edit' | translate }}
+								</button>
+								<div class="dropdown-divider"></div>
+								<button vdrDropdownItem (click)="deleteNote.emit(entry)" [disabled]="!('UpdateCustomer' | hasPermission)">
+									<clr-icon shape="trash" class="is-danger"></clr-icon> {{ 'common.delete' | translate }}
+								</button>
+							</vdr-dropdown-menu>
+						</vdr-dropdown>
+					</div>
+				</ng-container>
+				<ng-container *ngSwitchDefault>
+					<div class="title">{{ entry.type }}</div>
+					<vdr-history-entry-detail *ngIf="entry.data">
+						<vdr-object-tree [value]="entry.data"></vdr-object-tree>
+					</vdr-history-entry-detail>
+				</ng-container>
+			</ng-container>
+		</vdr-timeline-entry>
+	</ng-container>
+	<!-- <ng-container *ngFor="let entry of history">
+		<vdr-timeline-entry *ngIg="(entry.type === 'BLOG_POST_CREATED')" [isLast]="true" [createdAt]="order.createdAt" [featured]="true">
+			<div class="title">
+				Post created
+				<vdr-history-entry-detail *ngIf="entry.data.input">
+					<vdr-object-tree [value]="entry.data.input"></vdr-object-tree>
+				</vdr-history-entry-detail>
+			</div>
+		</vdr-timeline-entry>
+	</ng-container> -->
+</div>

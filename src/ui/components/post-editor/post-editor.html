@@ -1,0 +1,27 @@
+<vdr-page-block>
+	<vdr-action-bar>
+		<vdr-ab-left></vdr-ab-left>
+		<vdr-ab-right>
+			<button class="btn btn-primary" (click)="update()" [disabled]="detailForm.pristine || detailForm.invalid">{{ 'common.update' | translate }}</button>
+		</vdr-ab-right>
+	</vdr-action-bar>
+</vdr-page-block>
+
+<form class="form" [formGroup]="detailForm">
+	<vdr-page-block *ngIf="contentType === 'markdown'">
+		<code-editor 
+			formControlName="content"
+			[indentWithTab]="true"
+			[lineWrapping]="true"
+			[language]="markdown"
+		>
+		</code-editor>
+	</vdr-page-block>
+	<vdr-page-block *ngIf="contentType === 'html'">
+		<vdr-rich-text-editor formControlName="content"></vdr-rich-text-editor>
+	</vdr-page-block>
+	<hr>
+	<vdr-page-block>
+		<div [innerHtml]="sanitize(content$ | async)"></div>
+	</vdr-page-block>
+</form>

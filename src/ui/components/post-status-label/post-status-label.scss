@@ -1,0 +1,12 @@
+.status-icon {
+		margin-right: 3px;
+		&.draft {
+			color: var(--color-error-700);
+		}
+		&.published {
+			color: var(--color-success-700);
+		}
+		&.archived {
+			color: var(--color-warning-700);
+		}
+}
