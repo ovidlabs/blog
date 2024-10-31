@@ -58,7 +58,7 @@ import { BlogPlugin } from '@ovidlabs/blog'
 ```ts
 plugins: [
 	// other plugins...
-	blogPlugin
+	BlogPlugin
 ]
 ```
 
