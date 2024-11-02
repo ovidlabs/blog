@@ -48,8 +48,6 @@ export const adminApiExtensions = gql`
 		slug: String!
 		name: String!
 		description: String
-		keywords: String
-		metadata: JSON
 	}
 
 	input UpdateBlogCategoryInput {
@@ -57,41 +55,47 @@ export const adminApiExtensions = gql`
 		slug: String
 		name: String
 		description: String
-		keywords: String
-		metadata: JSON
+	}
+
+	input BlogPostTranslationInput {
+		id: ID
+		languageCode: LanguageCode!
+		slug: String!
+		title: String!
+		excerpt: String
+		content: String
+		description: String
 	}
 
 	input CreateBlogPostInput {
 		status: BlogPostStatus
+		contentType: BlogPostContentType
 		slug: String!
 		title: String!
 		excerpt: String
-		contentType: BlogPostContentType
 		content: String
 		description: String
-		keywords: String
-		metadata: JSON
 		authorId: ID
 		categoryId: ID
 		productIds: [ID]
 		tagIds: [ID]
+		translations: [BlogPostTranslationInput!]!
 	}
 
 	input UpdateBlogPostInput {
 		id: ID!
 		status: BlogPostStatus
+		contentType: BlogPostContentType
 		slug: String
 		title: String
 		excerpt: String
-		contentType: BlogPostContentType
 		content: String
 		description: String
-		keywords: String
-		metadata: JSON
 		authorId: ID
 		categoryId: ID
 		productIds: [ID]
 		tagIds: [ID]
+		translations: [BlogPostTranslationInput!]
 	}
 
 	input CreateBlogTagInput {

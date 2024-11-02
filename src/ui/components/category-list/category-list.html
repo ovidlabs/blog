@@ -54,8 +54,5 @@
 	<vdr-dt2-column heading="Slug" [sort]="sorts.get('slug')">
 		<ng-template let-category="item">{{ category.slug }}</ng-template>
 	</vdr-dt2-column>
-	<vdr-dt2-column heading="Keywords" [sort]="sorts.get('keywords')">
-		<ng-template let-category="item">{{ category.keywords }}</ng-template>
-	</vdr-dt2-column>
 	<vdr-dt2-custom-field-column *ngFor="let customField of customFields" [customField]="customField" [sorts]="sorts" />
 </vdr-data-table-2>

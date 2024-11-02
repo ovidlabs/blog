@@ -1,6 +1,17 @@
-import { Collection, DeepPartial, HasCustomFields, Product, SoftDeletable, VendureEntity } from '@vendure/core'
-import { Column, Entity, Index, JoinColumn, JoinTable, ManyToOne, ManyToMany } from 'typeorm'
+import { 
+	Collection, 
+	DeepPartial, 
+	HasCustomFields, 
+	LocaleString,
+	Product, 
+	SoftDeletable, 
+	Translatable,
+	Translation,
+	VendureEntity 
+} from '@vendure/core'
+import { Column, Entity, Index, JoinColumn, JoinTable, ManyToOne, ManyToMany, OneToMany } from 'typeorm'
 import { BlogPostStatus, BlogPostContentType } from '../types'
+import { BlogPostTranslation } from './blog-post-translation'
 import { BlogAuthor } from './blog-author.entity'
 import { BlogCategory } from './blog-category.entity'
 import { BlogTag } from './blog-tag.entity'
@@ -8,7 +19,7 @@ import { BlogTag } from './blog-tag.entity'
 export class BlogPostCustomFields {}
 
 @Entity()
-export class BlogPost extends VendureEntity implements HasCustomFields, SoftDeletable {
+export class BlogPost extends VendureEntity implements HasCustomFields, SoftDeletable, Translatable {
 	constructor(input?: DeepPartial<BlogPost>) {
 		super(input)
 	}
@@ -19,30 +30,15 @@ export class BlogPost extends VendureEntity implements HasCustomFields, SoftDele
    @Column('varchar', { default: 'draft' })
    status: BlogPostStatus
 
-	@Index({ unique: true })
-	@Column({ type: "varchar", nullable: false })
-	slug: string
-
-	@Column({ type: "varchar", nullable: false })
-	title: string
-
-	@Column({ type: "varchar", nullable: true })
-	excerpt: string
-
 	@Column({ type: "varchar", default: 'html' })
 	contentType: BlogPostContentType
 
-	@Column({ type: "text", nullable: true })
-	content: string | null
-	
-	@Column({ type: "text", nullable: true })
-	description: string | null
-
-	@Column({ type: "text", nullable: true })
-   keywords: string | null
-
-	@Column({ type: "jsonb", nullable: true })
-	metadata: Record<string, any> | null
+	// translatable fields
+	slug: LocaleString
+	title: LocaleString
+	excerpt: LocaleString
+	content: LocaleString
+	description: LocaleString
 
 	@ManyToOne(() => BlogAuthor)
 	@JoinColumn({ name: "author_id" })
@@ -82,4 +78,7 @@ export class BlogPost extends VendureEntity implements HasCustomFields, SoftDele
 
 	@Column(type => BlogPostCustomFields)
 	customFields: BlogPostCustomFields
+
+	@OneToMany(type => BlogPostTranslation, translation => translation.base, { eager: true })
+	translations: Array<Translation<BlogPost>>
 }

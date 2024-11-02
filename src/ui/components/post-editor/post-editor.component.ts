@@ -6,6 +6,7 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { CodeEditor } from '@acrodata/code-editor'
 import {
+	createUpdatedTranslatable,
 	DataService,
 	LanguageCode,
 	NotificationService,
@@ -28,12 +29,14 @@ import {
 export class PostEditorComponent extends TypedBaseDetailComponent<typeof GetPostDetailDocument, 'blogPost'> implements OnInit, OnDestroy {
 
 	// @ts-ignore
+	customFields = this.getCustomFieldConfig('BlogPost')
+
+	// @ts-ignore
 	detailForm = this.formBuilder.group({
 		content: ['', Validators.required],
 	})
 
 	contentType: string = 'html'
-	// content$: Observable<String> // needed for preview
 	content$: BehaviorSubject<string | undefined>
 	contentSubscription: Subscription
 
@@ -62,10 +65,31 @@ export class PostEditorComponent extends TypedBaseDetailComponent<typeof GetPost
 	update() {
 		let { content } = this.detailForm.value
 		if (!content) return
+		// @ts-ignore
+		const { slug, title, excerpt, description, customFields, translations } = createUpdatedTranslatable({ 
+			// @ts-ignore
+			translatable: this.entity,
+			updatedFields: this.detailForm.value, 
+			customFieldConfig: this.customFields,
+			languageCode: this.languageCode,
+			defaultTranslation: {
+				languageCode: this.languageCode,
+				slug: this.entity?.slug || '',
+				title: this.entity?.title || '',
+				excerpt: this.entity?.excerpt || '',
+				description: this.entity?.description || ''
+			}
+		})
 		this.dataService.mutate(UpdatePostDocument, {
 			input: { 
 				id: this.id, 
+				slug,
+				title,
+				excerpt,
+				description,
 				content: DOMPurify.sanitize(content),
+				customFields,
+				translations
 			},
 		}).subscribe(() => {
 			this.notificationService.success('Post updated')

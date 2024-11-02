@@ -62,6 +62,9 @@
 					</vdr-form-field>
 				</div>
 			</vdr-card>
+			<vdr-card formGroupName="customFields" *ngIf="customFields.length" [title]="'common.custom-fields' | translate">
+				<vdr-tabbed-custom-fields entityName="ProductReview" [customFields]="customFields" [customFieldsFormGroup]="detailForm.get('customFields')"></vdr-tabbed-custom-fields>
+			</vdr-card>
 			<vdr-card title="Content">
 				<div *ngIf="entity$ | async as entity">
 					<div class="property">
@@ -94,23 +97,11 @@
 					</ng-select>
 			  </vdr-form-field>
 			</vdr-card>
-			<vdr-card formGroupName="customFields" *ngIf="customFields.length" [title]="'common.custom-fields' | translate">
-				<vdr-tabbed-custom-fields entityName="ProductReview" [customFields]="customFields" [customFieldsFormGroup]="detailForm.get('customFields')"></vdr-tabbed-custom-fields>
-			</vdr-card>
 			<vdr-card title="SEO Metadata">
 				<div class="form-grid">
 					<vdr-form-field class="form-grid-span" [label]="'common.description' | translate" for="description">
 						 <textarea id="description" formControlName="description"></textarea>
 			  		</vdr-form-field>
-					<vdr-form-field class="form-grid-span" label="Keywords" for="keywords">
-						 <tag-input 
-						 	formControlName="keywordsArray" 
-							[separatorKeyCodes]="[188, 13]" 
-							[modelAsStrings]="true"
-							secondaryPlaceholder="Enter keywords for SEO" 
-							placeholder="+ Keyword">
-						</tag-input>
-					</vdr-form-field>
 					<vdr-form-field class="form-grid-span" label="Excerpt (for open graph)" for="excerpt">
 						 <textarea id="excerpt" formControlName="excerpt"></textarea>
 			  		</vdr-form-field>

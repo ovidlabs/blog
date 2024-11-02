@@ -8,7 +8,8 @@ import {
 	PaginatedList,
 	RelationPaths,
 	Relations,
-	RequestContext
+	RequestContext,
+	Translated
 } from '@vendure/core'
 import { BlogAuthor } from '../../entities/blog-author.entity'
 import { BlogCategory } from '../../entities/blog-category.entity'
@@ -41,8 +42,10 @@ export class CommonResolver {
 	}
 
 	@Query()
-	async blogPost(@Ctx() ctx: RequestContext, @Args() args: { id?: ID, slug?: string }, @Relations(BlogPost) relations: RelationPaths<BlogPost>): Promise<BlogPost | null> {
-		return this.blogService.getPost(ctx, { id: args.id, slug: args.slug }, relations)
+	async blogPost(@Ctx() ctx: RequestContext, @Args() args: { id?: ID, slug?: string }, @Relations(BlogPost) relations: RelationPaths<BlogPost>): Promise<Translated<BlogPost> | null> {
+		if (args.id) return this.blogService.getPost(ctx, args.id, relations)
+		else if (args.slug) return this.blogService.getPostBySlug(ctx, args.slug, relations)
+		else return null
 	}
 
 	@Query()

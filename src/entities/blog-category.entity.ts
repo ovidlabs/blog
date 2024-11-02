@@ -20,12 +20,6 @@ export class BlogCategory extends VendureEntity implements HasCustomFields {
    @Column({ type: "text", nullable: true })
    description: string | null
 
-   @Column({ type: "text", nullable: true })
-   keywords: string | null
-
-   @Column({ type: "jsonb", nullable: true })
-   metadata: Record<string, any> | null
-
    @OneToMany(type => BlogPost, post => post.category)
    posts: BlogPost[]
 

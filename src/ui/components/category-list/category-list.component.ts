@@ -37,12 +37,6 @@ export class CategoryListComponent extends TypedBaseListComponent<typeof GetCate
 			label: 'Description',
 			filterField: 'description',
 		})
-		.addFilter({
-			name: 'keywords',
-			type: { kind: 'text' },
-			label: 'Keywords',
-			filterField: 'keywords',
-		})
 		.addCustomFieldFilters(this.customFields)
 		.connectToRoute(this.route);
 
@@ -54,7 +48,6 @@ export class CategoryListComponent extends TypedBaseListComponent<typeof GetCate
 		.addSort({ name: 'slug' })
 		.addSort({ name: 'name' })
 		.addSort({ name: 'description' })
-		.addSort({ name: 'keywords' })
 		.addCustomFieldSorts(this.customFields)
 		.connectToRoute(this.route);
 

@@ -68,7 +68,7 @@ export type ApplyCouponCodeResult = CouponCodeExpiredError | CouponCodeInvalidEr
 export type Asset = Node & {
   __typename?: 'Asset';
   createdAt: Scalars['DateTime']['output'];
-  customFields?: Maybe<Scalars['JSON']['output']>;
+  customFields?: Maybe<AssetCustomFields>;
   fileSize: Scalars['Int']['output'];
   focalPoint?: Maybe<Coordinate>;
   height: Scalars['Int']['output'];
@@ -81,6 +81,11 @@ export type Asset = Node & {
   type: AssetType;
   updatedAt: Scalars['DateTime']['output'];
   width: Scalars['Int']['output'];
+};
+
+export type AssetCustomFields = {
+  __typename?: 'AssetCustomFields';
+  alt?: Maybe<Scalars['String']['output']>;
 };
 
 export type AssetList = PaginatedList & {
@@ -217,6 +222,7 @@ export type BlogPost = Node & {
   status?: Maybe<BlogPostStatus>;
   tags?: Maybe<Array<Maybe<BlogTag>>>;
   title: Scalars['String']['output'];
+  translations: Array<BlogPostTranslation>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -288,6 +294,25 @@ export enum BlogPostStatus {
   draft = 'draft',
   published = 'published'
 }
+
+export type BlogPostTranslation = {
+  __typename?: 'BlogPostTranslation';
+  content?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  customFields?: Maybe<BlogPostTranslationCustomFields>;
+  description?: Maybe<Scalars['String']['output']>;
+  excerpt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  languageCode: LanguageCode;
+  slug: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type BlogPostTranslationCustomFields = {
+  __typename?: 'BlogPostTranslationCustomFields';
+  subtitle?: Maybe<Scalars['String']['output']>;
+};
 
 export type BlogTag = Node & {
   __typename?: 'BlogTag';
@@ -1941,6 +1966,7 @@ export type Mutation = {
    * that verification token to the Customer, which is then used to verify the change of email address.
    */
   requestUpdateCustomerEmailAddress: RequestUpdateCustomerEmailAddressResult;
+  resetAndAddItemToOrder: UpdateOrderItemsResult;
   /** Resets a Customer's password based on the provided token */
   resetPassword: ResetPasswordResult;
   /** Set the Customer for the Order. Required only if the Customer is not currently logged in */
@@ -2056,6 +2082,12 @@ export type MutationRequestPasswordResetArgs = {
 export type MutationRequestUpdateCustomerEmailAddressArgs = {
   newEmailAddress: Scalars['String']['input'];
   password: Scalars['String']['input'];
+};
+
+
+export type MutationResetAndAddItemToOrderArgs = {
+  productVariantId: Scalars['ID']['input'];
+  quantity: Scalars['Int']['input'];
 };
 
 
@@ -2839,7 +2871,16 @@ export type ProductVariantListArgs = {
 
 export type ProductCustomFields = {
   __typename?: 'ProductCustomFields';
+  brand?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
   featuredReview?: Maybe<ProductReview>;
+  gtin?: Maybe<Scalars['String']['output']>;
+  itemCondition?: Maybe<Scalars['String']['output']>;
+  merchantReturnDays?: Maybe<Scalars['Int']['output']>;
+  merchantReturnLink?: Maybe<Scalars['String']['output']>;
+  returnFees?: Maybe<Scalars['String']['output']>;
+  returnMethod?: Maybe<Scalars['String']['output']>;
+  returnPolicyCategory?: Maybe<Scalars['String']['output']>;
   reviewCount?: Maybe<Scalars['Float']['output']>;
   reviewRating?: Maybe<Scalars['Float']['output']>;
   shortDescription?: Maybe<Scalars['String']['output']>;
@@ -2848,12 +2889,21 @@ export type ProductCustomFields = {
 export type ProductFilterParameter = {
   _and?: InputMaybe<Array<ProductFilterParameter>>;
   _or?: InputMaybe<Array<ProductFilterParameter>>;
+  brand?: InputMaybe<StringOperators>;
+  category?: InputMaybe<StringOperators>;
   createdAt?: InputMaybe<DateOperators>;
   description?: InputMaybe<StringOperators>;
   enabled?: InputMaybe<BooleanOperators>;
+  gtin?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
+  itemCondition?: InputMaybe<StringOperators>;
   languageCode?: InputMaybe<StringOperators>;
+  merchantReturnDays?: InputMaybe<NumberOperators>;
+  merchantReturnLink?: InputMaybe<StringOperators>;
   name?: InputMaybe<StringOperators>;
+  returnFees?: InputMaybe<StringOperators>;
+  returnMethod?: InputMaybe<StringOperators>;
+  returnPolicyCategory?: InputMaybe<StringOperators>;
   reviewCount?: InputMaybe<NumberOperators>;
   reviewRating?: InputMaybe<NumberOperators>;
   shortDescription?: InputMaybe<StringOperators>;
@@ -3004,11 +3054,20 @@ export type ProductReviewSortParameter = {
 };
 
 export type ProductSortParameter = {
+  brand?: InputMaybe<SortOrder>;
+  category?: InputMaybe<SortOrder>;
   createdAt?: InputMaybe<SortOrder>;
   description?: InputMaybe<SortOrder>;
   featuredReview?: InputMaybe<SortOrder>;
+  gtin?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
+  itemCondition?: InputMaybe<SortOrder>;
+  merchantReturnDays?: InputMaybe<SortOrder>;
+  merchantReturnLink?: InputMaybe<SortOrder>;
   name?: InputMaybe<SortOrder>;
+  returnFees?: InputMaybe<SortOrder>;
+  returnMethod?: InputMaybe<SortOrder>;
+  returnPolicyCategory?: InputMaybe<SortOrder>;
   reviewCount?: InputMaybe<SortOrder>;
   reviewRating?: InputMaybe<SortOrder>;
   shortDescription?: InputMaybe<SortOrder>;

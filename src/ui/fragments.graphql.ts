@@ -18,7 +18,6 @@ export const CATEGORY_FRAGMENT = gql`
 		slug
 		name
 		description
-		keywords
 		metadata
 	}
 `
@@ -29,14 +28,22 @@ export const POST_FRAGMENT = gql`
 		createdAt
 		updatedAt
 		status
+		contentType
 		slug
 		title
 		excerpt
-		contentType
 		content
 		description
-		keywords
 		metadata
+		translations {
+			id
+			languageCode
+			slug
+			title
+			excerpt
+			content
+			description
+		}
 		author {
 			id
 			name

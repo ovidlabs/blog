@@ -74,12 +74,6 @@ export class PostListComponent extends TypedBaseListComponent<typeof GetPostList
 			filterField: 'description'
 		})
 		.addFilter({
-			name: 'keywords',
-			type: { kind: 'text' },
-			label: 'Keywords',
-			filterField: 'keywords'
-		})
-		.addFilter({
 			name: 'authorName',
 			type: { kind: 'text' },
 			label: 'Author',

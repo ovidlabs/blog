@@ -36,15 +36,6 @@
 						<!-- <vdr-rich-text-editor formControlName="description"></vdr-rich-text-editor> -->
 						 <textarea id="description" formControlName="description"></textarea>
 			  		</vdr-form-field>
-					<vdr-form-field class="form-grid-span" label="Keywords" for="keywords">
-						 <tag-input 
-						 	formControlName="keywordsArray" 
-							[separatorKeyCodes]="[188, 13]" 
-							[modelAsStrings]="true"
-							secondaryPlaceholder="Enter keywords for SEO" 
-							placeholder="+ Keyword">
-						</tag-input>
-					</vdr-form-field>
 				</div>
 			</vdr-card>
 			<vdr-card formGroupName="customFields" *ngIf="customFields.length" [title]="'common.custom-fields' | translate">

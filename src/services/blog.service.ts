@@ -1,4 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common'
+import { FindOptionsUtils, In, IsNull } from 'typeorm'
 import { DeletionResponse, DeletionResult, JobState } from '@vendure/common/lib/generated-types'
 import {
 	CustomFieldRelationService,
@@ -13,6 +14,9 @@ import {
 	RequestContext,
 	SerializedRequestContext,
 	TransactionalConnection,
+	Translated,
+	TranslatableSaver,
+	TranslatorService,
 	assertFound,
 	patchEntity
 } from '@vendure/core'
@@ -21,6 +25,7 @@ import { BlogAuthor } from '../entities/blog-author.entity'
 import { BlogCategory } from '../entities/blog-category.entity'
 import { BlogPost } from '../entities/blog-post.entity'
 import { BlogPostHistoryService } from './history.service'
+import { BlogPostTranslation } from '../entities/blog-post-translation'
 import { BlogTag } from '../entities/blog-tag.entity'
 import { PluginInitOptions } from '../types'
 import { 
@@ -49,6 +54,8 @@ export class BlogService implements OnModuleInit {
 		private connection: TransactionalConnection,
 		private listQueryBuilder: ListQueryBuilder,
 		private customFieldRelationService: CustomFieldRelationService,
+		private translatableSaver: TranslatableSaver,
+		private translator: TranslatorService,
 		private jobQueueService: JobQueueService,
 		private historyService: BlogPostHistoryService
 	) {}
@@ -197,7 +204,13 @@ export class BlogService implements OnModuleInit {
 		}
 		return this.listQueryBuilder
 			.build(BlogPost, options || undefined, { 
+				where: { deletedAt: IsNull() },
 				customPropertyMap: {
+					slug: 'translations.slug',
+					title: 'translations.title',
+					excerpt: 'translations.excerpt',
+					content: 'translations.content',
+					description: 'translations.description',
 					authorName: 'author.name',
 					categoryName: 'category.name'
 				},
@@ -205,7 +218,8 @@ export class BlogService implements OnModuleInit {
 				ctx 
 			})
 			.getManyAndCount()
-			.then(([items, totalItems]) => {
+			.then(async ([posts, totalItems]) => {
+				const items = posts.map(post => this.translator.translate(post, ctx))
 				return {
 					items,
 					totalItems
@@ -228,40 +242,75 @@ export class BlogService implements OnModuleInit {
 		}
 	}
 
-	async getPost(ctx: RequestContext, input: { id?: ID, slug?: string }, relations?: RelationPaths<BlogPost>): Promise<BlogPost | null> {
-		const { id, slug } = input
-		if (!input.id && !input.slug) return null
-		return await this.connection.getRepository(ctx, BlogPost).findOne({
-			where: (ctx.apiType === 'shop')? 
-				(id)? { id, status: 'published' } : { slug, status: 'published' } :
-				(id)? { id } : {slug},
+	async getPost(ctx: RequestContext, id: ID, relations?: RelationPaths<BlogPost>): Promise<Translated<BlogPost> | null> {
+		const post = await this.connection.getRepository(ctx, BlogPost).findOne({
+			where: (ctx.apiType === 'shop')? { id, deletedAt: IsNull(), status: 'published' } : { id, deletedAt: IsNull() },
 			relations
 		})
+		if (!post) return null
+		return this.translator.translate(post, ctx)
+		
 	}
 
-	async createPost(ctx: RequestContext, input: CreateBlogPostInput): Promise<BlogPost> {
-		let post = new BlogPost(input)
-		if (input.authorId) post.author = await this.connection.getEntityOrThrow(ctx, BlogAuthor, input.authorId)
-		if (input.categoryId) post.category = await this.connection.getEntityOrThrow(ctx, BlogCategory, input.categoryId)
-		if (input.productIds) {
-			for (const id of input.productIds) {
-				const product = await this.connection.getEntityOrThrow(ctx, Product, id)
-				if (product) {
-					if (!post.products) post.products = []
-					post.products.push(product)
-				}
-			}
-		}
-		if (input.tagIds) {
-			for (const id of input.tagIds) {
-				const tag = await this.connection.getEntityOrThrow(ctx, BlogTag, id)
-				if (tag) {
-					if (!post.tags) post.tags = []
-					post.tags.push(tag)
-				}
-			}
-		}
-		post = await this.connection.getRepository(ctx, BlogPost).save(post)
+	async getPostBySlug(ctx: RequestContext, slug: string, relations?: RelationPaths<BlogPost>): Promise<Translated<BlogPost> | null> {
+		const qb = this.connection.getRepository(ctx, BlogPost).createQueryBuilder('blogPost')
+		const translationQb = this.connection.getRepository(ctx, BlogPostTranslation)
+			 .createQueryBuilder('_blogPost_translation')
+			 .select('_blogPost_translation.baseId')
+			 .andWhere('_blogPost_translation.slug = :slug', { slug });
+
+		qb.leftJoin('blogPost.translations', 'translation')
+			 .andWhere('blogPost.deletedAt IS NULL')
+			 .andWhere('blogPost.id IN (' + translationQb.getQuery() + ')')
+			 .setParameters(translationQb.getParameters())
+			 .select('blogPost.id', 'id')
+			 .addSelect(
+				  // eslint-disable-next-line max-len
+				  `CASE translation.languageCode WHEN '${ctx.languageCode}' THEN 2 WHEN '${ctx.channel.defaultLanguageCode}' THEN 1 ELSE 0 END`,
+				  'sort_order',
+			 )
+			 .orderBy('sort_order', 'DESC')
+		// We use getRawOne here to simply get the ID as efficiently as possible,
+		// which we then pass to the regular findOne() method which will handle
+		// all the joins etc.
+		const result = await qb.getRawOne()
+		if (result) return this.getPost(ctx, result.id, relations)
+		else return null
+  }
+
+	// async createPost(ctx: RequestContext, input: CreateBlogPostInput): Promise<Translated<BlogPost>> {
+		async createPost(ctx: RequestContext, input: any): Promise<Translated<BlogPost>> {
+
+		// let post = new BlogPost(input)
+		const post = await this.translatableSaver.create({
+			ctx,
+			input,
+			entityType: BlogPost,
+			translationType: BlogPostTranslation,
+			beforeSave: async f => {
+				 if (input.authorId) f.author = await this.connection.getEntityOrThrow(ctx, BlogAuthor, input.authorId)
+				 if (input.categoryId) f.category = await this.connection.getEntityOrThrow(ctx, BlogCategory, input.categoryId)
+				 if (input.productIds) {
+					 for (const id of input.productIds) {
+						 const product = await this.connection.getEntityOrThrow(ctx, Product, id)
+						 if (product) {
+							 if (!f.products) f.products = []
+							 f.products.push(product)
+						 }
+					 }
+				 }
+				 if (input.tagIds) {
+					 for (const id of input.tagIds) {
+						 const tag = await this.connection.getEntityOrThrow(ctx, BlogTag, id)
+						 if (tag) {
+							 if (!f.tags) f.tags = []
+							 f.tags.push(tag)
+						 }
+					 }
+				 }
+			},
+	  	})
+		// post = await this.connection.getRepository(ctx, BlogPost).save(post)
 		await this.customFieldRelationService.updateRelations(ctx, BlogPost, input, post)
 		await this.historyService.createHistoryEntryForBlogPost({
 			ctx,
@@ -271,43 +320,52 @@ export class BlogService implements OnModuleInit {
 				input
 			}
 		})
-		return assertFound(this.getPost(ctx, { id: post.id }, ['author', 'category', 'products', 'tags']))
+		return assertFound(this.getPost(ctx, post.id, ['author', 'category', 'products', 'tags']))
 	}
 
-	async updatePost(ctx: RequestContext, input: UpdateBlogPostInput): Promise<BlogPost> {
-		let post = await this.connection.getEntityOrThrow(ctx, BlogPost, input.id)
-		if (input.authorId) post.author = await this.connection.getEntityOrThrow(ctx, BlogAuthor, input.authorId)
-		if (input.categoryId) post.category = await this.connection.getEntityOrThrow(ctx, BlogCategory, input.categoryId)
-		if (input.productIds) {
-			post.products = []
-			for (const id of input.productIds) {
-				const product = await this.connection.getEntityOrThrow(ctx, Product, id)
-				if (product) {
-					post.products.push(product)
+	async updatePost(ctx: RequestContext, input: UpdateBlogPostInput): Promise<Translated<BlogPost>> {
+		// let post = await this.connection.getEntityOrThrow(ctx, BlogPost, input.id)
+		const updatedEntity = await this.translatableSaver.update({
+			ctx,
+			input,
+			entityType: BlogPost,
+			translationType: BlogPostTranslation,
+			beforeSave: async f => {
+				// Any pre-save logic can go here
+				if (input.authorId) f.author = await this.connection.getEntityOrThrow(ctx, BlogAuthor, input.authorId)
+				if (input.categoryId) f.category = await this.connection.getEntityOrThrow(ctx, BlogCategory, input.categoryId)
+				if (input.productIds) {
+					f.products = []
+					for (const id of input.productIds) {
+						const product = await this.connection.getEntityOrThrow(ctx, Product, id)
+						if (product) {
+							f.products.push(product)
+						}
+					}
 				}
-			}
-		}
-		if (input.tagIds) {
-			post.tags = []
-			for (const id of input.tagIds) {
-				const tag = await this.connection.getEntityOrThrow(ctx, BlogTag, id)
-				if (tag) {
-					post.tags.push(tag)
+				if (input.tagIds) {
+					f.tags = []
+					for (const id of input.tagIds) {
+						const tag = await this.connection.getEntityOrThrow(ctx, BlogTag, id)
+						if (tag) {
+							f.tags.push(tag)
+						}
+					}
 				}
-			}
-		}
-		let updatedPost = patchEntity(post, input)
-		await this.connection.getRepository(ctx, BlogPost).save(updatedPost)
-		await this.customFieldRelationService.updateRelations(ctx, BlogPost, input, updatedPost)
+			},
+		})
+		// let updatedPost = patchEntity(post, input)
+		// await this.connection.getRepository(ctx, BlogPost).save(updatedPost)
+		await this.customFieldRelationService.updateRelations(ctx, BlogPost, input, updatedEntity)
 		await this.historyService.createHistoryEntryForBlogPost({
 			ctx,
-			blogPostId: post.id,
+			blogPostId: updatedEntity.id,
 			type: HistoryEntryType.BLOG_POST_UPDATED,
 			data: {
 				input
 			}
 		})
-		return assertFound(this.getPost(ctx, { id: updatedPost.id })) // should include relations, or a waste?
+		return assertFound(this.getPost(ctx, updatedEntity.id))
 	}
 
 	async deletePost(ctx: RequestContext, id: ID): Promise<DeletionResponse> {

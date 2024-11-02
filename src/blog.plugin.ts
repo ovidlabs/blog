@@ -17,6 +17,7 @@ import { BlogAuthor } from './entities/blog-author.entity'
 import { BlogCategory } from './entities/blog-category.entity'
 import { BlogPost } from './entities/blog-post.entity'
 import { BlogPostHistoryEntry } from './entities/blog-post-history-entry.entity'
+import { BlogPostTranslation } from './entities/blog-post-translation'
 import { BlogTag } from './entities/blog-tag.entity'
 
 import { BlogService } from './services/blog.service'
@@ -26,16 +27,17 @@ import { BlogPostHistoryService } from './services/history.service'
     imports: [PluginCommonModule],
     providers: [{ provide: BLOG_PLUGIN_OPTIONS, useFactory: () => BlogPlugin.options }, BlogService, BlogPostHistoryService],
     configuration: config => {
-		// console.log('config', config)
-		// console.log('BlogPlugin.options', BlogPlugin.options)
-        // Plugin-specific configuration
-        // such as custom fields, custom permissions,
-        // strategies etc. can be configured here by
-        // modifying the `config` object.
         return config
     },
     compatibility: '^3.0.0',
-    entities: [BlogAuthor, BlogCategory, BlogPost, BlogPostHistoryEntry, BlogTag],
+    entities: [
+		BlogAuthor, 
+		BlogCategory, 
+		BlogPost, 
+		BlogPostHistoryEntry, 
+		BlogPostTranslation,
+		BlogTag
+	],
     adminApiExtensions: {
         schema: adminApiExtensions,
         resolvers: [AdminResolver, CommonResolver, ProductResolver]

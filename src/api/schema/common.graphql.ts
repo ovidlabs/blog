@@ -34,10 +34,10 @@ export const commonApiExtensions = gql`
 		id: ID!
 		updatedAt: DateTime!
 		status: BlogPostStatus
+		contentType: BlogPostContentType
 		slug: String!
 		title: String!
 		excerpt: String
-		contentType: BlogPostContentType
 		content: String
 		description: String
 		keywords: String
@@ -46,6 +46,19 @@ export const commonApiExtensions = gql`
 		category: BlogCategory
 		products: [Product]
 		tags: [BlogTag]
+		translations: [BlogPostTranslation!]!
+	}
+
+	type BlogPostTranslation {
+		id: ID!
+		createdAt: DateTime!
+		updatedAt: DateTime!
+		languageCode: LanguageCode!
+		slug: String!
+		title: String!
+		excerpt: String
+		content: String
+		description: String
 	}
 
 	type BlogTag implements Node {
@@ -93,6 +106,11 @@ export const commonApiExtensions = gql`
 
 	# Auto-generated at runtime
 	input BlogPostFilterParameter {
+		slug: StringOperators
+		title: StringOperators
+		excerpt: StringOperators
+		content: StringOperators
+		description: StringOperators
 		authorName: StringOperators
 		categoryName: StringOperators
 	}

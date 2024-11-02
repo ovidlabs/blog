@@ -174,7 +174,7 @@ export type ApplyCouponCodeResult = CouponCodeExpiredError | CouponCodeInvalidEr
 export type Asset = Node & {
   __typename?: 'Asset';
   createdAt: Scalars['DateTime']['output'];
-  customFields?: Maybe<Scalars['JSON']['output']>;
+  customFields?: Maybe<AssetCustomFields>;
   fileSize: Scalars['Int']['output'];
   focalPoint?: Maybe<Coordinate>;
   height: Scalars['Int']['output'];
@@ -189,9 +189,15 @@ export type Asset = Node & {
   width: Scalars['Int']['output'];
 };
 
+export type AssetCustomFields = {
+  __typename?: 'AssetCustomFields';
+  alt?: Maybe<Scalars['String']['output']>;
+};
+
 export type AssetFilterParameter = {
   _and?: InputMaybe<Array<AssetFilterParameter>>;
   _or?: InputMaybe<Array<AssetFilterParameter>>;
+  alt?: InputMaybe<StringOperators>;
   createdAt?: InputMaybe<DateOperators>;
   fileSize?: InputMaybe<NumberOperators>;
   height?: InputMaybe<NumberOperators>;
@@ -227,6 +233,7 @@ export type AssetListOptions = {
 };
 
 export type AssetSortParameter = {
+  alt?: InputMaybe<SortOrder>;
   createdAt?: InputMaybe<SortOrder>;
   fileSize?: InputMaybe<SortOrder>;
   height?: InputMaybe<SortOrder>;
@@ -428,6 +435,7 @@ export type BlogPost = Node & {
   status?: Maybe<BlogPostStatus>;
   tags?: Maybe<Array<Maybe<BlogTag>>>;
   title: Scalars['String']['output'];
+  translations: Array<BlogPostTranslation>;
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -503,6 +511,40 @@ export enum BlogPostStatus {
   draft = 'draft',
   published = 'published'
 }
+
+export type BlogPostTranslation = {
+  __typename?: 'BlogPostTranslation';
+  content?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  customFields?: Maybe<BlogPostTranslationCustomFields>;
+  description?: Maybe<Scalars['String']['output']>;
+  excerpt?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  languageCode: LanguageCode;
+  slug: Scalars['String']['output'];
+  title: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type BlogPostTranslationCustomFields = {
+  __typename?: 'BlogPostTranslationCustomFields';
+  subtitle?: Maybe<Scalars['String']['output']>;
+};
+
+export type BlogPostTranslationInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  customFields?: InputMaybe<BlogPostTranslationInputCustomFields>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  excerpt?: InputMaybe<Scalars['String']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  languageCode: LanguageCode;
+  slug: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type BlogPostTranslationInputCustomFields = {
+  subtitle?: InputMaybe<Scalars['String']['input']>;
+};
 
 export type BlogTag = Node & {
   __typename?: 'BlogTag';
@@ -826,6 +868,7 @@ export type ComplaintFilterParameter = {
   id?: InputMaybe<IdOperators>;
   number?: InputMaybe<NumberOperators>;
   productId?: InputMaybe<StringOperators>;
+  productName?: InputMaybe<StringOperators>;
   status?: InputMaybe<StringOperators>;
   summary?: InputMaybe<StringOperators>;
   updatedAt?: InputMaybe<DateOperators>;
@@ -859,6 +902,7 @@ export type ComplaintSortParameter = {
   id?: InputMaybe<SortOrder>;
   number?: InputMaybe<SortOrder>;
   productId?: InputMaybe<SortOrder>;
+  productName?: InputMaybe<SortOrder>;
   status?: InputMaybe<SortOrder>;
   summary?: InputMaybe<SortOrder>;
   updatedAt?: InputMaybe<SortOrder>;
@@ -1093,8 +1137,12 @@ export type CreateAdministratorInput = {
   roleIds: Array<Scalars['ID']['input']>;
 };
 
+export type CreateAssetCustomFieldsInput = {
+  alt?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateAssetInput = {
-  customFields?: InputMaybe<Scalars['JSON']['input']>;
+  customFields?: InputMaybe<CreateAssetCustomFieldsInput>;
   file: Scalars['Upload']['input'];
   tags?: InputMaybe<Array<Scalars['String']['input']>>;
 };
@@ -1110,14 +1158,8 @@ export type CreateBlogAuthorInput = {
 export type CreateBlogCategoryInput = {
   customFields?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
-  keywords?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<Scalars['JSON']['input']>;
   name: Scalars['String']['input'];
   slug: Scalars['String']['input'];
-};
-
-export type CreateBlogPostCustomFieldsInput = {
-  subtitle?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateBlogPostInput = {
@@ -1125,16 +1167,15 @@ export type CreateBlogPostInput = {
   categoryId?: InputMaybe<Scalars['ID']['input']>;
   content?: InputMaybe<Scalars['String']['input']>;
   contentType?: InputMaybe<BlogPostContentType>;
-  customFields?: InputMaybe<CreateBlogPostCustomFieldsInput>;
+  customFields?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   excerpt?: InputMaybe<Scalars['String']['input']>;
-  keywords?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<Scalars['JSON']['input']>;
   productIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
   slug: Scalars['String']['input'];
   status?: InputMaybe<BlogPostStatus>;
   tagIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
   title: Scalars['String']['input'];
+  translations: Array<BlogPostTranslationInput>;
 };
 
 export type CreateBlogTagInput = {
@@ -1255,8 +1296,24 @@ export type CreatePaymentMethodInput = {
   translations: Array<PaymentMethodTranslationInput>;
 };
 
+export type CreatePostInput = {
+  code: Scalars['String']['input'];
+  customFields?: InputMaybe<Scalars['JSON']['input']>;
+  localizedName: Scalars['String']['input'];
+  translations: Array<PostTranslationInput>;
+};
+
 export type CreateProductCustomFieldsInput = {
+  brand?: InputMaybe<Scalars['String']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
   featuredReviewId?: InputMaybe<Scalars['ID']['input']>;
+  gtin?: InputMaybe<Scalars['String']['input']>;
+  itemCondition?: InputMaybe<Scalars['String']['input']>;
+  merchantReturnDays?: InputMaybe<Scalars['Int']['input']>;
+  merchantReturnLink?: InputMaybe<Scalars['String']['input']>;
+  returnFees?: InputMaybe<Scalars['String']['input']>;
+  returnMethod?: InputMaybe<Scalars['String']['input']>;
+  returnPolicyCategory?: InputMaybe<Scalars['String']['input']>;
   reviewCount?: InputMaybe<Scalars['Float']['input']>;
   reviewRating?: InputMaybe<Scalars['Float']['input']>;
   serialEnabled?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1779,6 +1836,7 @@ export type CustomFields = {
   Order: Array<CustomFieldConfig>;
   OrderLine: Array<CustomFieldConfig>;
   PaymentMethod: Array<CustomFieldConfig>;
+  Post: Array<CustomFieldConfig>;
   Product: Array<CustomFieldConfig>;
   ProductOption: Array<CustomFieldConfig>;
   ProductOptionGroup: Array<CustomFieldConfig>;
@@ -3205,6 +3263,7 @@ export type Mutation = {
   createFacetValues: Array<FacetValue>;
   /** Create existing PaymentMethod */
   createPaymentMethod: PaymentMethod;
+  createPost: Post;
   /** Create a new Product */
   createProduct: Product;
   /** Create a new ProductOption within a ProductOptionGroup */
@@ -3284,6 +3343,7 @@ export type Mutation = {
   deletePaymentMethod: DeletionResponse;
   /** Delete multiple PaymentMethods */
   deletePaymentMethods: Array<DeletionResponse>;
+  deletePost: DeletionResponse;
   /** Delete a Product */
   deleteProduct: DeletionResponse;
   /** Delete a ProductOption */
@@ -3445,6 +3505,7 @@ export type Mutation = {
   updateOrderNote: HistoryEntry;
   /** Update an existing PaymentMethod */
   updatePaymentMethod: PaymentMethod;
+  updatePost: Post;
   /** Update an existing Product */
   updateProduct: Product;
   /** Create a new ProductOption within a ProductOptionGroup */
@@ -3739,6 +3800,11 @@ export type MutationCreatePaymentMethodArgs = {
 };
 
 
+export type MutationCreatePostArgs = {
+  input: CreatePostInput;
+};
+
+
 export type MutationCreateProductArgs = {
   input: CreateProductInput;
 };
@@ -3971,6 +4037,11 @@ export type MutationDeletePaymentMethodArgs = {
 export type MutationDeletePaymentMethodsArgs = {
   force?: InputMaybe<Scalars['Boolean']['input']>;
   ids: Array<Scalars['ID']['input']>;
+};
+
+
+export type MutationDeletePostArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -4437,6 +4508,11 @@ export type MutationUpdateOrderNoteArgs = {
 
 export type MutationUpdatePaymentMethodArgs = {
   input: UpdatePaymentMethodInput;
+};
+
+
+export type MutationUpdatePostArgs = {
+  input: UpdatePostInput;
 };
 
 
@@ -5268,6 +5344,70 @@ export type PermissionDefinition = {
   name: Scalars['String']['output'];
 };
 
+export type Post = Node & {
+  __typename?: 'Post';
+  code: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  customFields?: Maybe<Scalars['JSON']['output']>;
+  id: Scalars['ID']['output'];
+  localizedName: Scalars['String']['output'];
+  translations: Array<PostTranslation>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type PostFilterParameter = {
+  _and?: InputMaybe<Array<PostFilterParameter>>;
+  _or?: InputMaybe<Array<PostFilterParameter>>;
+  code?: InputMaybe<StringOperators>;
+  createdAt?: InputMaybe<DateOperators>;
+  id?: InputMaybe<IdOperators>;
+  localizedName?: InputMaybe<StringOperators>;
+  updatedAt?: InputMaybe<DateOperators>;
+};
+
+export type PostList = PaginatedList & {
+  __typename?: 'PostList';
+  items: Array<Post>;
+  totalItems: Scalars['Int']['output'];
+};
+
+export type PostListOptions = {
+  /** Allows the results to be filtered */
+  filter?: InputMaybe<PostFilterParameter>;
+  /** Specifies whether multiple top-level "filter" fields should be combined with a logical AND or OR operation. Defaults to AND. */
+  filterOperator?: InputMaybe<LogicalOperator>;
+  /** Skips the first n results, for use in pagination */
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  /** Specifies which properties to sort the results by */
+  sort?: InputMaybe<PostSortParameter>;
+  /** Takes n results, for use in pagination */
+  take?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type PostSortParameter = {
+  code?: InputMaybe<SortOrder>;
+  createdAt?: InputMaybe<SortOrder>;
+  id?: InputMaybe<SortOrder>;
+  localizedName?: InputMaybe<SortOrder>;
+  updatedAt?: InputMaybe<SortOrder>;
+};
+
+export type PostTranslation = {
+  __typename?: 'PostTranslation';
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  languageCode: LanguageCode;
+  localizedName: Scalars['String']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type PostTranslationInput = {
+  customFields?: InputMaybe<Scalars['JSON']['input']>;
+  id?: InputMaybe<Scalars['ID']['input']>;
+  languageCode: LanguageCode;
+  localizedName?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type PreviewCollectionVariantsInput = {
   filters: Array<ConfigurableOperationInput>;
   inheritFilters: Scalars['Boolean']['input'];
@@ -5338,7 +5478,16 @@ export type ProductVariantListArgs = {
 
 export type ProductCustomFields = {
   __typename?: 'ProductCustomFields';
+  brand?: Maybe<Scalars['String']['output']>;
+  category?: Maybe<Scalars['String']['output']>;
   featuredReview?: Maybe<ProductReview>;
+  gtin?: Maybe<Scalars['String']['output']>;
+  itemCondition?: Maybe<Scalars['String']['output']>;
+  merchantReturnDays?: Maybe<Scalars['Int']['output']>;
+  merchantReturnLink?: Maybe<Scalars['String']['output']>;
+  returnFees?: Maybe<Scalars['String']['output']>;
+  returnMethod?: Maybe<Scalars['String']['output']>;
+  returnPolicyCategory?: Maybe<Scalars['String']['output']>;
   reviewCount?: Maybe<Scalars['Float']['output']>;
   reviewRating?: Maybe<Scalars['Float']['output']>;
   serialEnabled?: Maybe<Scalars['Boolean']['output']>;
@@ -5349,14 +5498,23 @@ export type ProductCustomFields = {
 export type ProductFilterParameter = {
   _and?: InputMaybe<Array<ProductFilterParameter>>;
   _or?: InputMaybe<Array<ProductFilterParameter>>;
+  brand?: InputMaybe<StringOperators>;
+  category?: InputMaybe<StringOperators>;
   complaintCount?: InputMaybe<NumberOperators>;
   createdAt?: InputMaybe<DateOperators>;
   description?: InputMaybe<StringOperators>;
   enabled?: InputMaybe<BooleanOperators>;
   facetValueId?: InputMaybe<IdOperators>;
+  gtin?: InputMaybe<StringOperators>;
   id?: InputMaybe<IdOperators>;
+  itemCondition?: InputMaybe<StringOperators>;
   languageCode?: InputMaybe<StringOperators>;
+  merchantReturnDays?: InputMaybe<NumberOperators>;
+  merchantReturnLink?: InputMaybe<StringOperators>;
   name?: InputMaybe<StringOperators>;
+  returnFees?: InputMaybe<StringOperators>;
+  returnMethod?: InputMaybe<StringOperators>;
+  returnPolicyCategory?: InputMaybe<StringOperators>;
   reviewCount?: InputMaybe<NumberOperators>;
   reviewRating?: InputMaybe<NumberOperators>;
   serialEnabled?: InputMaybe<BooleanOperators>;
@@ -5533,12 +5691,21 @@ export type ProductReviewSortParameter = {
 };
 
 export type ProductSortParameter = {
+  brand?: InputMaybe<SortOrder>;
+  category?: InputMaybe<SortOrder>;
   complaintCount?: InputMaybe<SortOrder>;
   createdAt?: InputMaybe<SortOrder>;
   description?: InputMaybe<SortOrder>;
   featuredReview?: InputMaybe<SortOrder>;
+  gtin?: InputMaybe<SortOrder>;
   id?: InputMaybe<SortOrder>;
+  itemCondition?: InputMaybe<SortOrder>;
+  merchantReturnDays?: InputMaybe<SortOrder>;
+  merchantReturnLink?: InputMaybe<SortOrder>;
   name?: InputMaybe<SortOrder>;
+  returnFees?: InputMaybe<SortOrder>;
+  returnMethod?: InputMaybe<SortOrder>;
+  returnPolicyCategory?: InputMaybe<SortOrder>;
   reviewCount?: InputMaybe<SortOrder>;
   reviewRating?: InputMaybe<SortOrder>;
   serialEnabled?: InputMaybe<SortOrder>;
@@ -5923,6 +6090,8 @@ export type Query = {
   paymentMethodHandlers: Array<ConfigurableOperationDefinition>;
   paymentMethods: PaymentMethodList;
   pendingSearchIndexUpdates: Scalars['Int']['output'];
+  post?: Maybe<Post>;
+  posts: PostList;
   /** Used for real-time previews of the contents of a Collection */
   previewCollectionVariants: ProductVariantList;
   /** Get a Product either by id or slug. If neither id nor slug is specified, an error will result. */
@@ -6179,6 +6348,16 @@ export type QueryPaymentMethodArgs = {
 
 export type QueryPaymentMethodsArgs = {
   options?: InputMaybe<PaymentMethodListOptions>;
+};
+
+
+export type QueryPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPostsArgs = {
+  options?: InputMaybe<PostListOptions>;
 };
 
 
@@ -7398,8 +7577,12 @@ export type UpdateAdministratorInput = {
   roleIds?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
 
+export type UpdateAssetCustomFieldsInput = {
+  alt?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateAssetInput = {
-  customFields?: InputMaybe<Scalars['JSON']['input']>;
+  customFields?: InputMaybe<UpdateAssetCustomFieldsInput>;
   focalPoint?: InputMaybe<CoordinateInput>;
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
@@ -7417,14 +7600,8 @@ export type UpdateBlogCategoryInput = {
   customFields?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  keywords?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<Scalars['JSON']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   slug?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateBlogPostCustomFieldsInput = {
-  subtitle?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateBlogPostInput = {
@@ -7432,17 +7609,16 @@ export type UpdateBlogPostInput = {
   categoryId?: InputMaybe<Scalars['ID']['input']>;
   content?: InputMaybe<Scalars['String']['input']>;
   contentType?: InputMaybe<BlogPostContentType>;
-  customFields?: InputMaybe<UpdateBlogPostCustomFieldsInput>;
+  customFields?: InputMaybe<Scalars['JSON']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   excerpt?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  keywords?: InputMaybe<Scalars['String']['input']>;
-  metadata?: InputMaybe<Scalars['JSON']['input']>;
   productIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
   slug?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<BlogPostStatus>;
   tagIds?: InputMaybe<Array<InputMaybe<Scalars['ID']['input']>>>;
   title?: InputMaybe<Scalars['String']['input']>;
+  translations?: InputMaybe<Array<BlogPostTranslationInput>>;
 };
 
 export type UpdateBlogTagInput = {
@@ -7592,8 +7768,25 @@ export type UpdatePaymentMethodInput = {
   translations?: InputMaybe<Array<PaymentMethodTranslationInput>>;
 };
 
+export type UpdatePostInput = {
+  code?: InputMaybe<Scalars['String']['input']>;
+  customFields?: InputMaybe<Scalars['JSON']['input']>;
+  id: Scalars['ID']['input'];
+  localizedName?: InputMaybe<Scalars['String']['input']>;
+  translations?: InputMaybe<Array<PostTranslationInput>>;
+};
+
 export type UpdateProductCustomFieldsInput = {
+  brand?: InputMaybe<Scalars['String']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
   featuredReviewId?: InputMaybe<Scalars['ID']['input']>;
+  gtin?: InputMaybe<Scalars['String']['input']>;
+  itemCondition?: InputMaybe<Scalars['String']['input']>;
+  merchantReturnDays?: InputMaybe<Scalars['Int']['input']>;
+  merchantReturnLink?: InputMaybe<Scalars['String']['input']>;
+  returnFees?: InputMaybe<Scalars['String']['input']>;
+  returnMethod?: InputMaybe<Scalars['String']['input']>;
+  returnPolicyCategory?: InputMaybe<Scalars['String']['input']>;
   reviewCount?: InputMaybe<Scalars['Float']['input']>;
   reviewRating?: InputMaybe<Scalars['Float']['input']>;
   serialEnabled?: InputMaybe<Scalars['Boolean']['input']>;

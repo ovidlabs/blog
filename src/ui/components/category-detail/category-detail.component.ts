@@ -1,7 +1,6 @@
 import { ResultOf } from '@graphql-typed-document-node/core'
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core'
 import { FormBuilder, Validators } from '@angular/forms'
-import { TagInputModule } from 'ngx-chips'
 import {
 	getCustomFieldsDefaults,
 	DataService,
@@ -24,7 +23,7 @@ import {
 	styleUrls: ['./category-detail.scss'],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	standalone: true,
-	imports: [SharedModule, TagInputModule],
+	imports: [SharedModule],
 })
 export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof GetCategoryDetailDocument, 'blogCategory'> implements OnInit, OnDestroy {
 
@@ -36,7 +35,6 @@ export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof Get
 		slug: ['', Validators.required],
 		name: ['', Validators.required],
 		description: '',
-		keywordsArray: [['']],
 		// @ts-ignore
 		customFields: this.formBuilder.group(getCustomFieldsDefaults(this.customFields))
 	})
@@ -52,7 +50,6 @@ export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof Get
 
 	ngOnInit(): void {
 		this.init()
-		if (!this.entity) this.detailForm.patchValue({ keywordsArray: [] }) // for some reason this is needed to prevent an empty tag when creating a new category
 	}
 
 	ngOnDestroy(): void {
@@ -60,7 +57,7 @@ export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof Get
 	}
 
 	create() {
-		let { slug, name, description, keywordsArray, customFields } = this.detailForm.value
+		let { slug, name, description, customFields } = this.detailForm.value
 		if (!slug || !name) {
 			this.notificationService.error('Category name and slug are required')
 			return
@@ -70,7 +67,6 @@ export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof Get
 				slug,
 				name,
 				description,
-				keywords: (keywordsArray)?.join(','),
 				customFields
 			},
 		}).subscribe((result) => {
@@ -81,14 +77,13 @@ export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof Get
 	}
 
 	update() {
-		let { slug, name, description, keywordsArray, customFields } = this.detailForm.value
+		let { slug, name, description, customFields } = this.detailForm.value
 		this.dataService.mutate(UpdateCategoryDocument, {
 			input: { 
 				id: this.id, 
 				slug,
 				name,
 				description,
-				keywords: keywordsArray?.join(','),
 				customFields
 			},
 		}).subscribe(() => {
@@ -112,7 +107,6 @@ export class CategoryDetailComponent extends TypedBaseDetailComponent<typeof Get
 			slug: entity?.slug,
 			name: entity?.name,
 			description: entity?.description,
-			keywordsArray: entity?.keywords?.split(',')?.map(value => value.trim()) || []
 		})
 		if (this.customFields.length) {
 			this.setCustomFieldFormValues(this.customFields, this.detailForm.get('customFields'), entity)

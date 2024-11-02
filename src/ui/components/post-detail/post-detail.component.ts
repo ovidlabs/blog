@@ -4,11 +4,12 @@ import { FormBuilder, Validators } from '@angular/forms'
 import { EMPTY, Observable, Subject } from 'rxjs'
 import { map, startWith, switchMap } from 'rxjs/operators'
 import { marker as _ } from '@biesbjerg/ngx-translate-extract-marker'
-import { TagInputModule } from 'ngx-chips'
 import {
-	getCustomFieldsDefaults,
+	createUpdatedTranslatable,
 	DataService,
 	EditNoteDialogComponent,
+	findTranslation,
+	getCustomFieldsDefaults,
 	GetProductListDocument, 
 	GetProductListQuery, 
 	ItemOf,
@@ -24,6 +25,7 @@ import { normalizeString } from '@vendure/common/lib/normalize-string'
 import { 
 	AddPostNoteDocument,
 	ArchivePostDocument,
+	BlogPost,
 	BlogPostContentType,
 	BlogPostStatus,
 	BlogTag,
@@ -50,12 +52,7 @@ import { PostHistoryComponent } from '../post-history/post-history.component'
 	styleUrls: ['./post-detail.scss'],
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	standalone: true,
-	imports: [
-		PostHistoryComponent,
-		PostStatusLabelComponent,
-		SharedModule, 
-		TagInputModule
-	]
+	imports: [PostHistoryComponent, PostStatusLabelComponent, SharedModule]
 })
 export class PostDetailComponent extends TypedBaseDetailComponent<typeof GetPostDetailDocument, 'blogPost'> implements OnInit, OnDestroy {
 	private wordCount: number|null = null
@@ -72,7 +69,6 @@ export class PostDetailComponent extends TypedBaseDetailComponent<typeof GetPost
 		excerpt: '',
 		contentType: ['html' as BlogPostContentType],
 		description: '',
-		keywordsArray: [['']],
 		authorId: '',
 		categoryId: '',
 		tags: [] as any[],
@@ -104,8 +100,6 @@ export class PostDetailComponent extends TypedBaseDetailComponent<typeof GetPost
 	ngOnInit(): void {
 		this.init()
 
-		if (!this.entity) this.detailForm.patchValue({ keywordsArray: [] }) // for some reason this is needed to prevent an empty tag when creating a new category
-
 		if (this.entity && this.entity.content) {
 			this.wordCount = this.entity.content.split(/\s+/).length
 			this.minutesToRead = Math.ceil(this.wordCount / 200)
@@ -132,49 +126,81 @@ export class PostDetailComponent extends TypedBaseDetailComponent<typeof GetPost
 	}
 
 	create() {
-		let { title, slug, status, excerpt, contentType, description, authorId, categoryId, tags, products, customFields } = this.detailForm.value
-		if (!title || !slug) {
+		if (!this.detailForm.value.title || !this.detailForm.value.slug) {
 			this.notificationService.error('Post title and slug are required')
 			return
 		}
+		// @ts-ignore
+		const { slug, title, excerpt, description, customFields, translations } = createUpdatedTranslatable({ 
+			translatable: { slug: '', title: '', excerpt: '', description: '', translations: [], customFields: [] }, 
+			updatedFields: this.detailForm.value, 
+			customFieldConfig: this.customFields,
+			languageCode: this.languageCode,
+			// @ts-ignore
+			defaultTranslation: {
+				languageCode: this.languageCode,
+				slug: '',
+				title: '',
+				excerpt: '',
+				description: ''
+			}
+		})
+		const { status, contentType, authorId, categoryId, tags, products } = this.detailForm.value
 		this.dataService.mutate(CreatePostDocument, {
 			input: { 
-				title,
 				slug,
-				status,
+				title,
 				excerpt,
-				contentType,
 				description,
+				status,
+				contentType,
 				authorId,
 				categoryId,
-				tagIds: tags.map(tag => tag.id),
-				productIds: products.map(product => product.id),
-				customFields
+				tagIds: tags?.map(tag => tag.id),
+				productIds: products?.map(product => product.id),
+				customFields,
+				translations
 			},
 		}).subscribe((result) => {
 			this.fetchHistory.next()
-			this.notificationService.success('Post created')
+			this.notificationService.success('Post updated')
 			this.detailForm.markAsPristine()
 			this.router.navigate(['../', result.createBlogPost.id], { relativeTo: this.route })
 		})
 	}
 
 	update() {
-		let { title, slug, status, excerpt, contentType, description, authorId, categoryId, tags, products, customFields } = this.detailForm.value
+		// @ts-ignore
+		const { slug, title, excerpt, description, customFields, translations } = createUpdatedTranslatable({ 
+			// @ts-ignore
+			translatable: this.entity, 
+			updatedFields: this.detailForm.value, 
+			customFieldConfig: this.customFields,
+			languageCode: this.languageCode,
+			defaultTranslation: {
+				languageCode: this.languageCode,
+				slug: this.entity?.slug || '',
+				title: this.entity?.title || '',
+				excerpt: this.entity?.excerpt || '',
+				description: this.entity?.description || ''
+			}
+		})
+		const { status, contentType, authorId, categoryId, tags, products } = this.detailForm.value
 		this.dataService.mutate(UpdatePostDocument, {
 			input: { 
-				id: this.id, 
-				title,
+				id: this.id,
 				slug,
-				status,
+				title,
 				excerpt,
-				contentType,
 				description,
+				status,
+				contentType,
 				authorId,
 				categoryId,
-				tagIds: tags.map(tag => tag.id),
-				productIds: products.map(product => product.id),
-				customFields
+				tagIds: tags?.map(tag => tag.id),
+				productIds: products?.map(product => product.id),
+				customFields,
+				translations
 			},
 		}).subscribe(() => {
 			this.fetchHistory.next()
@@ -288,8 +314,10 @@ export class PostDetailComponent extends TypedBaseDetailComponent<typeof GetPost
 
 	updateSlug(nameValue: string) {
 		const slugInput = this.detailForm.get(['slug'])
-		if (slugInput && slugInput.pristine && !this.entity?.slug) {
-			slugInput.setValue(normalizeString(`${nameValue}`, '-'));
+		const currentTranslation = this.entity ? findTranslation(this.entity, this.languageCode) : undefined
+		const currentSlugIsEmpty = !currentTranslation //|| !currentTranslation.slug
+		if (slugInput && slugInput.pristine && currentSlugIsEmpty) {
+			slugInput.setValue(normalizeString(`${nameValue}`, '-'))
 		}
   	}
 
@@ -298,21 +326,22 @@ export class PostDetailComponent extends TypedBaseDetailComponent<typeof GetPost
 	}
 
 	protected setFormValues(entity: NonNullable<ResultOf<typeof GetPostDetailDocument>['blogPost']>, languageCode: LanguageCode): void {
+		const currentTranslation: any = findTranslation(entity, languageCode)
+		console.log('currentTranslation', currentTranslation)
 		this.detailForm.patchValue({
-			title: entity?.title,
-			slug: entity?.slug,
 			status: entity?.status,
-			excerpt: entity?.excerpt,
 			contentType: entity?.contentType,
-			description: entity?.description,
-			keywordsArray: entity?.keywords?.split(',')?.map(value => value.trim()) || [],
+			slug: currentTranslation ? currentTranslation?.slug : '',
+			title: currentTranslation ? currentTranslation?.title : '',
+			excerpt: currentTranslation ? currentTranslation?.excerpt : '',
+			description: currentTranslation ? currentTranslation?.description : '',
 			authorId: entity?.author?.id,
 			categoryId: entity?.category?.id,
 			tags: entity?.tags as any[],
 			products: entity?.products as any[],
 		})
 		if (this.customFields.length) {
-			this.setCustomFieldFormValues(this.customFields, this.detailForm.get('customFields'), entity)
+			this.setCustomFieldFormValues(this.customFields, this.detailForm.get('customFields'), entity, currentTranslation)
 	  	}
 	}
 }

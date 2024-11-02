@@ -41,8 +41,8 @@ const documents = {
     "\n\tquery GetTagList($options: BlogTagListOptions) {\n\t\tblogTags(options: $options) {\n\t\t\titems {\n\t\t\t\t...Tag\n\t\t\t}\n\t\t\ttotalItems\n\t\t}\n\t}\n": types.GetTagListDocument,
     "\n\tmutation DeleteBlogTag($id: ID!) {\n\t\tdeleteBlogTag(id: $id) {\n\t\t\tresult\n\t\t}\n\t}\n": types.DeleteBlogTagDocument,
     "\n\tfragment Author on BlogAuthor {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tname\n\t\tbio\n\t}\n": types.AuthorFragmentDoc,
-    "\n\tfragment Category on BlogCategory {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tslug\n\t\tname\n\t\tdescription\n\t\tkeywords\n\t\tmetadata\n\t}\n": types.CategoryFragmentDoc,
-    "\n\tfragment Post on BlogPost {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tstatus\n\t\tslug\n\t\ttitle\n\t\texcerpt\n\t\tcontentType\n\t\tcontent\n\t\tdescription\n\t\tkeywords\n\t\tmetadata\n\t\tauthor {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\tcategory {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\ttags {\n\t\t\tid\n\t\t\tvalue\n\t\t}\n\t\tproducts {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t}\n": types.PostFragmentDoc,
+    "\n\tfragment Category on BlogCategory {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tslug\n\t\tname\n\t\tdescription\n\t\tmetadata\n\t}\n": types.CategoryFragmentDoc,
+    "\n\tfragment Post on BlogPost {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tstatus\n\t\tcontentType\n\t\tslug\n\t\ttitle\n\t\texcerpt\n\t\tcontent\n\t\tdescription\n\t\tmetadata\n\t\ttranslations {\n\t\t\tid\n\t\t\tlanguageCode\n\t\t\tslug\n\t\t\ttitle\n\t\t\texcerpt\n\t\t\tcontent\n\t\t\tdescription\n\t\t}\n\t\tauthor {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\tcategory {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\ttags {\n\t\t\tid\n\t\t\tvalue\n\t\t}\n\t\tproducts {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t}\n": types.PostFragmentDoc,
     "\n\tfragment Tag on BlogTag {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tvalue\n\t}\n": types.TagFragmentDoc,
 };
 
@@ -175,11 +175,11 @@ export function graphql(source: "\n\tfragment Author on BlogAuthor {\n\t\tid\n\t
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tfragment Category on BlogCategory {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tslug\n\t\tname\n\t\tdescription\n\t\tkeywords\n\t\tmetadata\n\t}\n"): (typeof documents)["\n\tfragment Category on BlogCategory {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tslug\n\t\tname\n\t\tdescription\n\t\tkeywords\n\t\tmetadata\n\t}\n"];
+export function graphql(source: "\n\tfragment Category on BlogCategory {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tslug\n\t\tname\n\t\tdescription\n\t\tmetadata\n\t}\n"): (typeof documents)["\n\tfragment Category on BlogCategory {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tslug\n\t\tname\n\t\tdescription\n\t\tmetadata\n\t}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n\tfragment Post on BlogPost {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tstatus\n\t\tslug\n\t\ttitle\n\t\texcerpt\n\t\tcontentType\n\t\tcontent\n\t\tdescription\n\t\tkeywords\n\t\tmetadata\n\t\tauthor {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\tcategory {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\ttags {\n\t\t\tid\n\t\t\tvalue\n\t\t}\n\t\tproducts {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t}\n"): (typeof documents)["\n\tfragment Post on BlogPost {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tstatus\n\t\tslug\n\t\ttitle\n\t\texcerpt\n\t\tcontentType\n\t\tcontent\n\t\tdescription\n\t\tkeywords\n\t\tmetadata\n\t\tauthor {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\tcategory {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\ttags {\n\t\t\tid\n\t\t\tvalue\n\t\t}\n\t\tproducts {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t}\n"];
+export function graphql(source: "\n\tfragment Post on BlogPost {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tstatus\n\t\tcontentType\n\t\tslug\n\t\ttitle\n\t\texcerpt\n\t\tcontent\n\t\tdescription\n\t\tmetadata\n\t\ttranslations {\n\t\t\tid\n\t\t\tlanguageCode\n\t\t\tslug\n\t\t\ttitle\n\t\t\texcerpt\n\t\t\tcontent\n\t\t\tdescription\n\t\t}\n\t\tauthor {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\tcategory {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\ttags {\n\t\t\tid\n\t\t\tvalue\n\t\t}\n\t\tproducts {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t}\n"): (typeof documents)["\n\tfragment Post on BlogPost {\n\t\tid\n\t\tcreatedAt\n\t\tupdatedAt\n\t\tstatus\n\t\tcontentType\n\t\tslug\n\t\ttitle\n\t\texcerpt\n\t\tcontent\n\t\tdescription\n\t\tmetadata\n\t\ttranslations {\n\t\t\tid\n\t\t\tlanguageCode\n\t\t\tslug\n\t\t\ttitle\n\t\t\texcerpt\n\t\t\tcontent\n\t\t\tdescription\n\t\t}\n\t\tauthor {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\tcategory {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t\ttags {\n\t\t\tid\n\t\t\tvalue\n\t\t}\n\t\tproducts {\n\t\t\tid\n\t\t\tname\n\t\t}\n\t}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
